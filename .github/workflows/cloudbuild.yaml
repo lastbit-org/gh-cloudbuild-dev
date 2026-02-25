@@ -1,0 +1,34 @@
+# Cloud Build - Build Docker image and push to Artifact Registry
+# Executed by GitHub Actions via gcloud builds submit (private worker pool)
+# Use base images from Artifact Registry or gcr.io to avoid Docker Hub egress
+
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    id: build
+    args:
+      - "build"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${SHORT_SHA}"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:latest"
+      - "."
+    dir: "${_CONTEXT}"
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: push
+    args:
+      - "push"
+      - "--all-tags"
+      - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}"
+    waitFor: ["build"]
+
+substitutions:
+  _REGION: us-central1
+  _PROJECT_ID: lastbit-prj-d-movieapi
+  _REPO: movieapi
+  _IMAGE: app
+  _CONTEXT: .
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: "E2_HIGHCPU_8"

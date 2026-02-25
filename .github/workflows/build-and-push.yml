@@ -1,0 +1,42 @@
+# GitHub Actions - Build Docker image via Cloud Build (private pool)
+# Copy to your app repo: .github/workflows/build-and-push.yml
+# Requires: WIF configured in GCP bootstrap, outputs from projects/dev
+
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  PROJECT_ID: lastbit-prj-d-movieapi
+  REGION: us-central1
+  WORKER_POOL: projects/lastbit-prj-d-movieapi/locations/us-central1/workerPools/private-pool
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - id: build
+        uses: google-github-actions/build@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          region: ${{ env.REGION }}
+          worker_pool: ${{ env.WORKER_POOL }}
+          cloudbuild_file: cloudbuild.yaml
+          # Custom SA for build (has artifactregistry.writer, workerPoolUser)
+          service_account: projects/${{ env.PROJECT_ID }}/serviceAccounts/cb-build-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
