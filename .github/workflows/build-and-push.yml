@@ -24,8 +24,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: debug
+        run: |
+          echo "WIF_PROVIDER is set: ${{ secrets.WIF_PROVIDER != '' }}"
+          echo "WIF_SERVICE_ACCOUNT is set: ${{ secrets.WIF_SERVICE_ACCOUNT != '' }}"
       - uses: actions/checkout@v4
-
       - id: auth
         uses: google-github-actions/auth@v2
         with:
