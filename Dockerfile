@@ -1,4 +1,4 @@
-FROM gcr.io/cloud-builders/node:18
+FROM gcr.io/google-appengine/nodejs
 
 WORKDIR /app
 
