@@ -22,11 +22,24 @@ steps:
       - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}"
     waitFor: ["build"]
 
+  - name: "gcr.io/google.com/cloudsdktool/google-cloud-cli"
+    id: deploy
+    args:
+      - "run"
+      - "deploy"
+      - "${_SERVICE_NAME}"
+      - "--image=${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${SHORT_SHA}"
+      - "--region=${_REGION}"
+      - "--platform=managed"
+      - "--allow-unauthenticated"
+    waitFor: ["push"]
+
 substitutions:
   _REGION: us-central1
   _PROJECT_ID: lastbit-prj-d-movieapi
   _REPO: movieapi
   _IMAGE: app
+  _SERVICE_NAME: movieapi
   _CONTEXT: .
 
 options:

@@ -24,11 +24,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: debug
-        run: |
-          echo "WIF_PROVIDER is set: ${{ secrets.WIF_PROVIDER != '' }}"
-          echo "WIF_SERVICE_ACCOUNT is set: ${{ secrets.WIF_SERVICE_ACCOUNT != '' }}"
       - uses: actions/checkout@v4
+
       - id: auth
         uses: google-github-actions/auth@v2
         with:
@@ -43,6 +40,7 @@ jobs:
       - id: build
         run: |
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
           gcloud builds submit \
             --project=${{ env.PROJECT_ID }} \
             --region=${{ env.REGION }} \
