@@ -1,6 +1,7 @@
 # GitHub Actions - Build Docker image via Cloud Build (private pool)
 # Copy to your app repo: .github/workflows/build-and-push.yml
 # Requires: WIF configured in GCP bootstrap, outputs from projects/dev
+# Uses gcloud builds submit (google-github-actions/build does not exist)
 
 name: Build and Push Docker Image
 
@@ -31,12 +32,19 @@ jobs:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
-      - id: build
-        uses: google-github-actions/build@v2
+      - id: gcloud
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ env.PROJECT_ID }}
-          region: ${{ env.REGION }}
-          worker_pool: ${{ env.WORKER_POOL }}
-          cloudbuild_file: cloudbuild.yaml
-          # Custom SA for build (has artifactregistry.writer, workerPoolUser)
-          service_account: projects/${{ env.PROJECT_ID }}/serviceAccounts/cb-build-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+
+      - id: build
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          gcloud builds submit \
+            --project=${{ env.PROJECT_ID }} \
+            --region=${{ env.REGION }} \
+            --config=cloudbuild.yaml \
+            --worker-pool=${{ env.WORKER_POOL }} \
+            --service-account=projects/${{ env.PROJECT_ID }}/serviceAccounts/cb-build-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
+            . \
+            --substitutions=SHORT_SHA=$SHORT_SHA
