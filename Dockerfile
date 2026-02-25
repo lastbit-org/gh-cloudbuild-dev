@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine
 
 WORKDIR /app
 
